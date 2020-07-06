@@ -23,6 +23,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub ADCImm()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim oper As UInt8 = machinememory.UInt8Value(pc)
 		  incrementPC
@@ -38,8 +41,7 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "ADC #$" + ProperToHex(oper)
+		  ReportTrace pcAtStart, "ADC #$" + ProperToHex(oper)
 		  
 		End Sub
 	#tag EndMethod
@@ -95,7 +97,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub AndImm()
+		  Dim pcAtStart As UInt16 = pc
 		  
+		  incrementPC
 		  
 		  Dim andValue As UInt8 = machinememory.UInt8Value( pc )
 		  
@@ -106,8 +110,7 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "AND #$" + ProperToHex(andValue)
+		  ReportTrace pcAtStart, "AND #$" + ProperToHex(andValue)
 		  
 		End Sub
 	#tag EndMethod
@@ -142,6 +145,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub ASLa()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim setC As Boolean = (a And CType(&b10000000,UInt8)) <> 0
 		  
@@ -155,6 +161,7 @@ Protected Class MOS6502
 		    clearCarryFlag
 		  End If
 		  
+		  ReportTrace pcAtStart, "ASL A"
 		  
 		End Sub
 	#tag EndMethod
@@ -189,6 +196,10 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub BCCrel()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  Dim relBranch As Int8 = machinememory.UInt8Value( pc )
 		  incrementPC
 		  
@@ -196,12 +207,16 @@ Protected Class MOS6502
 		    pc = pc + relBranch
 		  End If
 		  
-		  
+		  ReportTrace pcAtStart, "BCC $" + ProperToHex(relBranch)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub BCSrel()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  Dim relBranch As Int8 = machinememory.UInt8Value( pc )
 		  incrementPC
 		  
@@ -209,12 +224,19 @@ Protected Class MOS6502
 		    pc = pc + relBranch
 		  End If
 		  
-		  
+		  ReportTrace pcAtStart, "BCS $" + ProperToHex(relBranch)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub BEQrel()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  If pcAtStart = &h04e5 Then
+		    Break
+		  End If
+		  incrementPC
+		  
 		  // All branches are relative mode And have a length Of two bytes. Syntax Is "Bxx Displacement" Or (better) "Bxx Label
 		  
 		  // BEQ = branch if zero flag is set
@@ -224,6 +246,8 @@ Protected Class MOS6502
 		  If isZeroFlagSet Then
 		    pc = pc + relOffset
 		  End If
+		  
+		  ReportTrace pcAtStart, "BEQ $" + ProperToHex(relOffset)
 		  
 		End Sub
 	#tag EndMethod
@@ -237,6 +261,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub BITzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim zpgAddr As UInt8 = machinememory.UInt8Value( pc ) 
 		  IncrementPC
@@ -249,7 +276,7 @@ Protected Class MOS6502
 		  setVFlagFromRegister( result )
 		  
 		  
-		  ReportTrace "BIT $" + ProperToHex(zpgAddr)
+		  ReportTrace pcAtStart, "BIT $" + ProperToHex(zpgAddr)
 		  
 		End Sub
 	#tag EndMethod
@@ -263,6 +290,10 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub BNErel()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  // BNE rel
 		  Dim relBranch As Int8 = machinememory.UInt8Value( pc )
 		  incrementPC
@@ -271,12 +302,16 @@ Protected Class MOS6502
 		    pc = pc + relBranch
 		  End If
 		  
+		  ReportTrace pcAtStart, "BNE $" + ProperToHex(relBranch)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub BPLrel()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim brOffset As UInt8 = machinememory.UInt8Value( pc ) 
 		  IncrementPC
@@ -288,21 +323,25 @@ Protected Class MOS6502
 		  
 		  
 		  
-		  ReportTrace "BPL $" + ProperToHex(brOffset)
+		  ReportTrace pcAtStart, "BPL $" + ProperToHex(brOffset)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub Brk()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  setBreakFlag
 		  
-		  ReportTrace "BRK"
+		  ReportTrace pcAtStart, "BRK"
 		  
 		  #If debugbuild Then
 		    mKeepRunning = False
 		  #EndIf
-		    
+		  
 		End Sub
 	#tag EndMethod
 
@@ -328,19 +367,27 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub CLC()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  clearCarryFlag
 		  
-		  
-		  ReportTrace "CLC"
+		  ReportTrace pcAtStart, "CLC"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub CLD()
+		  Dim pcAtStart As UInt16 = pc
 		  
-		  Break  
+		  incrementPC
+		  
+		  clearDecimalFlag
+		  
+		  ReportTrace pcAtStart, "CLD"
+		  
 		End Sub
 	#tag EndMethod
 
@@ -387,6 +434,27 @@ Protected Class MOS6502
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Sub clearDecimalFlag()
+		  // 8 bits
+		  // bit 6 Is Not used
+		  // 7 6 5 4 3 2 1 0
+		  // N V   B D I Z C
+		  // 
+		  // N - negative - same As bit 7 Of accumulator
+		  // V - overflow
+		  // B - Break command
+		  // indicates If BRK instruction was run Or interrupt signal
+		  // D - decimal mode
+		  // I - interrupt disable
+		  // Z - zero
+		  // C - carry
+		  
+		  status = status Or &b11111101
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Sub CLI()
 		  
 		  Break  
@@ -423,6 +491,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub CMPImm()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  // c flag set to 1 when value in mem <= accum
 		  //   set To 0 otherwise
@@ -442,6 +513,7 @@ Protected Class MOS6502
 		  
 		  setZeroFlagFromRegister(cmpValue - a)
 		  
+		  ReportTrace pcAtStart, "CMP $" + ProperToHex(cmpValue)
 		  
 		End Sub
 	#tag EndMethod
@@ -462,11 +534,17 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub CMPzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim oper As UInt8 
 		  oper = machinememory.UInt8Value( pc )
 		  
 		  incrementPC
+		  
+		  ReportTrace pcAtStart, "CMP $" + ProperToHex(oper)
+		  
 		End Sub
 	#tag EndMethod
 
@@ -507,6 +585,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub CPXzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim zpgAddr As UInt8 = machinememory.UInt8Value( pc )
 		  IncrementPC
@@ -520,8 +601,7 @@ Protected Class MOS6502
 		    clearCarryFlag
 		  End If
 		  
-		  
-		  ReportTrace "CPX $" + ProperToHex(zpgAddr)
+		  ReportTrace pcAtStart, "CPX $" + ProperToHex(zpgAddr)
 		  
 		End Sub
 	#tag EndMethod
@@ -577,30 +657,32 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub DEX()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  x = x - 1
-		  
 		  
 		  setNFlagFromRegister( x )
 		  setZeroFlagFromRegister( x )
 		  
-		  
-		  ReportTrace "DEX"
+		  ReportTrace pcAtStart, "DEX"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub DEY()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  y = y - 1
-		  
 		  
 		  setNFlagFromRegister( y )
 		  setZeroFlagFromRegister( y )
 		  
-		  
-		  ReportTrace "DEY"
+		  ReportTrace pcAtStart, "DEY"
 		  
 		End Sub
 	#tag EndMethod
@@ -628,8 +710,21 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub EORImm()
+		  Dim pcAtStart As UInt16 = pc
 		  
-		  Break  
+		  incrementPC
+		  
+		  Dim eorValue As UInt8 = machinememory.UInt8Value(pc)
+		  
+		  incrementPC
+		  
+		  a = a Xor eorValue
+		  
+		  setNFlagFromRegister( a )
+		  setZeroFlagFromRegister( a )
+		  
+		  ReportTrace pcAtStart, "EOR #$" + ProperToHex(eorValue)
+		  
 		End Sub
 	#tag EndMethod
 
@@ -686,6 +781,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub INCzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  Dim zpgAddr As UInt8 = machinememory.UInt8Value( pc ) 
 		  IncrementPC
@@ -696,8 +794,7 @@ Protected Class MOS6502
 		  
 		  setZeroFlagFromRegister( machinememory.UInt8Value( zpgAddr ) )
 		  
-		  
-		  ReportTrace "INC $" + ProperToHex(zpgAddr)
+		  ReportTrace pcAtStart, "INC $" + ProperToHex(zpgAddr)
 		  
 		End Sub
 	#tag EndMethod
@@ -1020,6 +1117,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub INX()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  X = X + 1
 		  
@@ -1027,17 +1126,23 @@ Protected Class MOS6502
 		  
 		  setZeroFlagFromRegister(x)
 		  
+		  ReportTrace pcAtStart, "INX"
+		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub INY()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  Y = Y + 1
 		  
 		  setZeroFlagFromRegister( y )
 		  
 		  setNFlagFromRegister( y )
 		  
+		  ReportTrace pcAtStart, "INY"
 		  
 		End Sub
 	#tag EndMethod
@@ -1116,6 +1221,20 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Function isZeroFlagSet() As boolean
+		  // 8 bits
+		  // bit 6 Is Not used
+		  // 7 6 5 4 3 2 1 0
+		  // N V   B D I Z C
+		  // 
+		  // N - negative - same As bit 7 Of accumulator
+		  // V - overflow
+		  // B - Break command
+		  // indicates If BRK instruction was run Or interrupt signal
+		  // D - decimal mode
+		  // I - interrupt disable
+		  // Z - zero
+		  // C - carry
+		  
 		  Return (status And &b00000010) <> 0
 		  
 		  
@@ -1124,6 +1243,10 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub JMPAbs()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  // next 2 bytes are address to jump to
 		  
 		  Dim addressToJumpTo As UInt16 = machinememory.UInt16Value(pc)
@@ -1131,6 +1254,7 @@ Protected Class MOS6502
 		  
 		  pc = addressToJumpTo
 		  
+		  ReportTrace pcAtStart, "JMP $" + ProperToHex(addressToJumpTo)
 		  
 		End Sub
 	#tag EndMethod
@@ -1146,6 +1270,10 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub JSRAbs()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  // next 2 bytes are address to jump to
 		  
 		  Dim addressToJumpTo As UInt16 = machinememory.UInt16Value(pc)
@@ -1159,18 +1287,25 @@ Protected Class MOS6502
 		  
 		  pc = addressToJumpTo
 		  
-		  
-		  
-		  ReportTrace "JSR $" + ProperToHex(addressToJumpTo)
+		  ReportTrace pcAtStart, "JSR $" + ProperToHex(addressToJumpTo)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub LDAAbs()
+		  Dim pcAtStart As UInt16 = pc
 		  
+		  incrementPC
 		  
-		  break
+		  Dim absAddr As UInt16 = machinememory.UInt16Value(pc)
+		  IncrementPC
+		  IncrementPC
+		  
+		  a = machinememory.UInt8Value(absAddr) 
+		  
+		  ReportTrace pcAtStart, "LDA $" + ProperToHex(absAddr)
+		  
 		End Sub
 	#tag EndMethod
 
@@ -1192,6 +1327,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub LDAImm()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
 		  
 		  a = machinememory.UInt8Value(pc)
 		  
@@ -1200,14 +1338,17 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "LDA #$" + ProperToHex(a)
+		  ReportTrace pcAtStart, "LDA #$" + ProperToHex(a)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub LDAIndY()
+		  Dim pcAtStart As UInt16 = pc
+		  
+		  incrementPC
+		  
 		  //  LDA (SRC),Y     ;get from source String
 		  // src is a 1 byte address
 		  // pull that into a 16 bit reg + Y
@@ -1224,14 +1365,16 @@ Protected Class MOS6502
 		  
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "LDA ($" + ProperToHex(base) + ") , Y"
+		  ReportTrace pcAtStart, "LDA ($" + ProperToHex(base) + ") , Y"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub LDAXind()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  Dim zpgAddr As Integer = machinememory.Int8Value(pc)
 		  IncrementPC
 		  
@@ -1242,13 +1385,15 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  ReportTrace "LDA ($" + zpgAddr.ProperToHex + ",X)"
+		  ReportTrace pcAtStart, "LDA ($" + zpgAddr.ProperToHex + ",X)"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub LDAzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  a = machinememory.UInt8Value( pc )
 		  incrementPC
@@ -1256,14 +1401,15 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "LDA $" + ProperToHex(a)
+		  ReportTrace pcAtStart, "LDA $" + ProperToHex(a)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub LDAzpgX()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  Dim zpgBase As UInt8 = machinememory.UInt8Value(pc)
 		  incrementPC
@@ -1273,8 +1419,7 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "LDA $" + ProperToHex(zpgBase) + ", X"
+		  ReportTrace pcAtstart, "LDA $" + ProperToHex(zpgBase) + ", X"
 		  
 		End Sub
 	#tag EndMethod
@@ -1295,6 +1440,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub LDXImm()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  x = machinememory.UInt8Value(pc)
 		  
@@ -1303,15 +1450,17 @@ Protected Class MOS6502
 		  setNFlagFromRegister( x )
 		  setZeroFlagFromRegister( x )
 		  
-		  ReportTrace "LDX #$" + ProperToHex(a)
+		  ReportTrace pcAtStart, "LDX #$" + ProperToHex(x)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub LDXzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
-		  Dim zpgAddr As Uint8 = machinememory.UInt8Value(pc)
+		  Dim zpgAddr As UInt8 = machinememory.UInt8Value(pc)
 		  incrementPC
 		  
 		  x = machinememory.UInt8Value(zpgAddr)
@@ -1319,9 +1468,7 @@ Protected Class MOS6502
 		  setNFlagFromRegister( x )
 		  setZeroFlagFromRegister( x )
 		  
-		  
-		  
-		  ReportTrace "LDX $" + ProperToHex(zpgAddr)
+		  ReportTrace pcAtStart, "LDX $" + ProperToHex(zpgAddr)
 		  
 		End Sub
 	#tag EndMethod
@@ -1349,6 +1496,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub LDYImm()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  y = machinememory.UInt8Value(pc)
 		  
@@ -1357,8 +1506,7 @@ Protected Class MOS6502
 		  setNFlagFromRegister( y )
 		  setZeroFlagFromRegister( y )
 		  
-		  
-		  ReportTrace "LDY #$" + ProperToHex(y)
+		  ReportTrace pcAtStart, "LDY #$" + ProperToHex(y)
 		  
 		End Sub
 	#tag EndMethod
@@ -1379,6 +1527,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub LSRA()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  If (a And &b00000001) <> 0 Then
 		    setCarryFlag
@@ -1391,8 +1541,7 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "LSR A"
+		  ReportTrace pcAtStart, "LSR A"
 		  
 		End Sub
 	#tag EndMethod
@@ -1427,9 +1576,10 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub NOP()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
-		  
-		  ReportTrace "NOP"
+		  ReportTrace pcAtStart, "NOP"
 		  
 		  
 		End Sub
@@ -1462,6 +1612,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub OraImm()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  // logical Or between Accum & memory
 		  
 		  Dim immedValue As UInt8 = machinememory.UInt8Value( pc )
@@ -1473,6 +1625,7 @@ Protected Class MOS6502
 		  
 		  setNFlagFromRegister(a)
 		  
+		  ReportTrace pcAtStart, "ORA #" + ProperToHex(immedValue)
 		  
 		End Sub
 	#tag EndMethod
@@ -1507,27 +1660,33 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub PHA()
-		  Break  
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  sp = sp - 1
 		  machinememory.UInt16Value(&h100 + sp) = a
+		  
+		  ReportTrace pcAtStart, "PHA"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub PHP()
-		  Break  
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  sp = sp - 1
 		  machinememory.UInt16Value(&h100 + sp) = status
 		  
+		  ReportTrace pcAtStart, "PHP"
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub PLA()
-		  Break  
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  a = machinememory.UInt16Value(&h100 + sp) 
 		  
@@ -1536,23 +1695,26 @@ Protected Class MOS6502
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
+		  ReportTrace pcAtStart, "PLA"
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub PLP()
-		  Break  
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  status = machinememory.UInt16Value(&h100 + sp)
 		  
 		  sp = sp - 1
 		  
+		  ReportTrace pcAtStart, "PLP"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub ReportTrace(instruction as string)
+		Private Sub ReportTrace(pcAtStart as Uint16, instruction as string)
 		  
 		  If traceMode = False Then
 		    Return
@@ -1577,12 +1739,12 @@ Protected Class MOS6502
 		  
 		  If (tracelines = 0)  Or ((tracelines Mod 100) = 0) Then
 		    
+		    line.Append Left(" PC                ", maxPCLength)
 		    line.append Left("                   ", maxInstructionLen)
 		    line.Append Left(" A                 ", maxAregLength)
 		    line.Append Left(" X                 ", maxXregLength)
 		    line.Append Left(" Y                 ", maxYregLength)
 		    line.Append Left("NV-BDIZC           ", maxStatusLength)
-		    line.Append Left(" PC                ", maxPCLength)
 		    
 		    System.debuglog Join(line, " ")
 		    
@@ -1590,12 +1752,12 @@ Protected Class MOS6502
 		    
 		  End If
 		  
+		  line.Append Left(pcAtStart.ProperToHex, maxPCLength)
 		  line.append Left(instruction + "                 ", maxInstructionLen)
 		  line.Append Left(a.ProperToHex, maxAregLength)
 		  line.Append Left(x.ProperToHex, maxXregLength)
 		  line.Append Left(y.ProperToHex, maxYregLength)
 		  line.Append Left(ProperConversions.ProperToBinary(status), maxStatusLength)
-		  line.Append Left(pc.ProperToHex, maxPCLength)
 		  
 		  System.debuglog Join(line, " ")
 		  
@@ -1606,6 +1768,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub ROLA()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  Dim willSetC As Boolean = (a And CType(&b10000000,UInt8)) <> 0
 		  
@@ -1616,6 +1780,7 @@ Protected Class MOS6502
 		  
 		  setZeroFlagFromRegister(a)
 		  setNFlagFromRegister(a)
+		  
 		  If willSetC Then
 		    setCarryFlag
 		  Else
@@ -1623,6 +1788,7 @@ Protected Class MOS6502
 		  End If
 		  
 		  
+		  ReportTrace pcAtStart, "ROL A"
 		  
 		End Sub
 	#tag EndMethod
@@ -1699,6 +1865,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub RTS()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  Dim addressToReturnTo As UInt16 = machinememory.UInt16Value( &h100 + sp )
 		  
@@ -1708,8 +1876,7 @@ Protected Class MOS6502
 		  
 		  incrementPC
 		  
-		  
-		  ReportTrace "RTS to $" + ProperToHex(pc) +""
+		  ReportTrace pcAtStart, "RTS to $" + ProperToHex(pc) +""
 		  
 		End Sub
 	#tag EndMethod
@@ -1722,8 +1889,9 @@ Protected Class MOS6502
 		  
 		  While mKeepRunning
 		    
-		    dim handler as OpCodeHandler = opCodeHandlers( machinememory.UInt8Value(pc))
-		    incrementPC
+		    Dim opcode As UInt8 = machinememory.UInt8Value(pc)
+		    Dim handler As OpCodeHandler = opCodeHandlers( opcode )
+		    
 		    handler.Invoke
 		    
 		  Wend
@@ -1790,6 +1958,8 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub SEC()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  // 
 		  // 8 bits
 		  // bit 6 Is Not used
@@ -1808,6 +1978,7 @@ Protected Class MOS6502
 		  
 		  setCarryFlag
 		  
+		  ReportTrace pcAtStart, "SEC"
 		End Sub
 	#tag EndMethod
 
@@ -1863,6 +2034,27 @@ Protected Class MOS6502
 		  // C - carry
 		  
 		  status = status Or &b00000001
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub setDecimalFlag()
+		  // 8 bits
+		  // bit 6 Is Not used
+		  // 7 6 5 4 3 2 1 0
+		  // N V   B D I Z C
+		  // 
+		  // N - negative - same As bit 7 Of accumulator
+		  // V - overflow
+		  // B - Break command
+		  // indicates If BRK instruction was run Or interrupt signal
+		  // D - decimal mode
+		  // I - interrupt disable
+		  // Z - zero
+		  // C - carry
+		  
+		  status = status Or &b00000010
 		  
 		End Sub
 	#tag EndMethod
@@ -1936,8 +2128,21 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub STAAbs()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
-		  Break  
+		  Dim absAddr As UInt16 = machinememory.UInt16Value(pc)
+		  IncrementPC
+		  IncrementPC
+		  
+		  If absAddr = &h04e6 Then
+		    Break
+		  End If
+		  
+		  machinememory.UInt8Value(absAddr) = A
+		  
+		  ReportTrace pcAtStart, "STA $" + ProperToHex(absAddr)
+		  
 		End Sub
 	#tag EndMethod
 
@@ -1957,6 +2162,9 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub STAIndY()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  //  STA (DST),Y
 		  // src is a 1 byte address
 		  // pull that into a 16 bit reg + Y
@@ -1966,83 +2174,119 @@ Protected Class MOS6502
 		  
 		  Dim actualAddress As Integer = machinememory.UInt16Value(base) + y
 		  
+		  If actualAddress = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machineMemory.UInt8Value(actualAddress) = a
 		  
-		  ReportTrace "STA ($" + ProperToHex(base) + "), y " 
+		  ReportTrace pcAtStart, "STA ($" + ProperToHex(base) + "), y " 
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub STAXind()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  Dim base As UInt8 = machinememory.UInt8Value(pc)
 		  incrementPC
 		  
 		  Dim actualAddress As Integer = machinememory.UInt16Value(base + x)
 		  
+		  If actualAddress = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machineMemory.UInt8Value(actualAddress) = a
 		  
-		  ReportTrace "STA ($" + ProperToHex(base) +"), X"
+		  ReportTrace pcAtstart, "STA ($" + ProperToHex(base) +"), X"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub STAzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  //  STA oper (zero page)
 		  
 		  Dim addr As UInt8 = machinememory.UInt8Value(pc)
 		  incrementPC
 		  
+		  If addr = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machineMemory.UInt8Value(addr) = a
 		  
-		  
-		  ReportTrace "STA $" + ProperToHex(addr)
+		  ReportTrace pcAtStart, "STA $" + ProperToHex(addr)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub STAzpgX()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  //  STA oper (zero page)
 		  
 		  Dim zpgAddr As UInt8 = machinememory.UInt8Value(pc)
 		  
 		  incrementPC
 		  
+		  If zpgAddr + x = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machineMemory.UInt8Value(zpgAddr + x) = a
 		  
-		  
-		  ReportTrace "STA $" + ProperToHex(zpgAddr) + ", X"
+		  ReportTrace pcAtStart, "STA $" + ProperToHex(zpgAddr) + ", X"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub STXAbs()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  Dim absAddr As UInt16 = machinememory.UInt16Value(pc)
 		  IncrementPC
 		  IncrementPC
 		  
+		  If absAddr = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machinememory.UInt8Value(absAddr) = x
 		  
-		  ReportTrace "STX $" + ProperToHex(absAddr)
+		  ReportTrace pcAtStart, "STX $" + ProperToHex(absAddr)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub STXzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  //  STX oper (zero page)
 		  
 		  Dim addr As UInt8 = machinememory.UInt8Value(pc)
 		  
 		  incrementPC
 		  
+		  If addr = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machineMemory.UInt8Value(addr) = x
 		  
-		  
-		  ReportTrace "STX $" + ProperToHex(addr)
+		  ReportTrace pcAtStart, "STX $" + ProperToHex(addr)
 		  
 		End Sub
 	#tag EndMethod
@@ -2056,30 +2300,42 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub STYAbs()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  Dim absAddr As UInt16 = machinememory.UInt16Value(pc)
 		  IncrementPC
 		  IncrementPC
 		  
+		  If absAddr = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machinememory.UInt8Value(absAddr) = y
 		  
-		  
-		  ReportTrace "STY $" + ProperToHex(absAddr)
+		  ReportTrace pcAtStart, "STY $" + ProperToHex(absAddr)
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub STYzpg()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  //  STY oper (zero page)
 		  
 		  Dim addr As UInt8 = machinememory.UInt8Value(pc)
 		  
 		  incrementPC
 		  
+		  If addr = &h04e6 Then
+		    Break
+		  End If
+		  
 		  machineMemory.UInt8Value(addr) = y
 		  
-		  
-		  ReportTrace "STY $" + ProperToHex(addr)
+		  ReportTrace pcAtStart, "STY $" + ProperToHex(addr)
 		  
 		End Sub
 	#tag EndMethod
@@ -2093,26 +2349,30 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub TAX()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  x = a
 		  
 		  setNFlagFromRegister( x )
 		  setZeroFlagFromRegister( x )
 		  
-		  
-		  ReportTrace "TAX"
+		  ReportTrace pcAtStart, "TAX"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub TAY()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
+		  
 		  y = a
 		  
 		  setNFlagFromRegister( y )
 		  setZeroFlagFromRegister( y )
 		  
-		  
-		  ReportTrace "TAY"
+		  ReportTrace pcAtStart, "TAY"
 		  
 		End Sub
 	#tag EndMethod
@@ -2126,35 +2386,42 @@ Protected Class MOS6502
 
 	#tag Method, Flags = &h1
 		Protected Sub TXA()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  a = x
 		  
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "TXA"
+		  ReportTrace pcAtStart, "TXA"
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub TXS()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
-		  Break  
+		  sp = x
+		  
+		  ReportTrace pcAtStart, "TXS"
+		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub TYA()
+		  Dim pcAtStart As UInt16 = pc
+		  incrementPC
 		  
 		  a = x
 		  
 		  setNFlagFromRegister( a )
 		  setZeroFlagFromRegister( a )
 		  
-		  
-		  ReportTrace "TYA"
+		  ReportTrace pcAtStart, "TYA"
 		  
 		End Sub
 	#tag EndMethod
@@ -2288,6 +2555,36 @@ Protected Class MOS6502
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="a"
+			Group="Behavior"
+			Type="Uint8"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="pc"
+			Group="Behavior"
+			Type="Uint16"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="sp"
+			Group="Behavior"
+			Type="Uint8"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="status"
+			Group="Behavior"
+			Type="UInt8"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="x"
+			Group="Behavior"
+			Type="Uint8"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="y"
+			Group="Behavior"
+			Type="uint8"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

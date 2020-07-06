@@ -89,13 +89,14 @@ End
 		  // c.bytecode(1) = ChrB(&h00)
 		  // c.bytecode(2) = ChrB(&h06)
 		  
-		  c.bytecode(0) = ChrB(&h20) // jsr $600
-		  c.bytecode(1) = ChrB(&h00)
-		  c.bytecode(2) = ChrB(&h06)
-		  
-		  c.bytecode(3) = ChrB(&h00) // break !
 		  
 		  #If False
+		    c.bytecode(0) = ChrB(&h20) // jsr $600
+		    c.bytecode(1) = ChrB(&h00)
+		    c.bytecode(2) = ChrB(&h06)
+		    
+		    c.bytecode(3) = ChrB(&h00) // break !
+		    
 		    // pack data around our string and the result to see we do not get overruns !
 		    // string IS nil terminated and we do copy the terminator
 		    c.bytecode(&h20) = "aBcDeFgHi"+ChrB(0) // SRC
@@ -129,6 +130,12 @@ End
 		  #EndIf
 		  
 		  #If False
+		    c.bytecode(0) = ChrB(&h20) // jsr $600
+		    c.bytecode(1) = ChrB(&h00)
+		    c.bytecode(2) = ChrB(&h06)
+		    
+		    c.bytecode(3) = ChrB(&h00) // break !
+		    
 		    c.bytecode(&h600) = ChrB(&ha2) + ChrB(&h01) + _  //LDX #$01
 		    ChrB(&ha9) + ChrB(&h05) + _ // LDA #$05
 		    ChrB(&h85) + ChrB(&h01) + _ // STA $01
@@ -166,7 +173,13 @@ End
 		  #EndIf
 		  
 		  
-		  #If false
+		  #If False
+		    c.bytecode(0) = ChrB(&h20) // jsr $600
+		    c.bytecode(1) = ChrB(&h00)
+		    c.bytecode(2) = ChrB(&h06)
+		    
+		    c.bytecode(3) = ChrB(&h00) // break !
+		    
 		    c.bytecode(&h600) = ChrB(&ha0) + ChrB(&h01) + _ //     LDY #$01
 		    ChrB(&ha9 ) + ChrB(&h03) + _ //    LDA #$03
 		    ChrB(&h85 ) + ChrB(&h01) + _ //    STA $01
@@ -202,7 +215,13 @@ End
 		    
 		  #EndIf
 		  
-		  #If false
+		  #If False
+		    c.bytecode(0) = ChrB(&h20) // jsr $600
+		    c.bytecode(1) = ChrB(&h00)
+		    c.bytecode(2) = ChrB(&h06)
+		    
+		    c.bytecode(3) = ChrB(&h00) // break !
+		    
 		    // http://6502.org/source/general/SWN.html
 		    // Address  Hexdump   Dissassembly
 		    // -------------------------------
@@ -232,6 +251,12 @@ End
 		  #EndIf
 		  
 		  #If False
+		    c.bytecode(0) = ChrB(&h20) // jsr $600
+		    c.bytecode(1) = ChrB(&h00)
+		    c.bytecode(2) = ChrB(&h06)
+		    
+		    c.bytecode(3) = ChrB(&h00) // break !
+		    
 		    // snake from http://skilldrick.github.io/easy6502/#snake
 		    // Address  Hexdump   Dissassembly
 		    // -------------------------------
@@ -422,6 +447,15 @@ End
 		    + ChrB(&hea) + ChrB(&hca) + ChrB(&hd0) + ChrB(&hfb) + ChrB(&h60 )
 		    
 		    c.run(&h00)
+		  #EndIf
+		  
+		  #If True
+		    Dim mb As memoryblock = functional_test
+		    
+		    c.bytecode(0) = mb
+		    
+		    c.run(&h400)
+		    
 		  #EndIf
 		  Break
 		End Sub
